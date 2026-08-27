@@ -1,12 +1,29 @@
 /* 야구기록지(스코어시트) 웹 편집기
  * - 원본 기록지 양식을 그대로 화면에 재현한다.
- * - 가운데 볼카운트(타석 다이아몬드) 영역은 작업 범위 밖이므로 빈 칸으로만 그린다.
+ * - 가운데 볼카운트(타석 다이아몬드) 영역은 판독한 칸만 표시한다(diamond 배열).
+ *   칸의 자리는 이닝이 아니라 (타순, 열) 이다 — 한 이닝이 두 열에 걸치기도 한다.
  * - 나머지 모든 칸은 data/parsed/*.json 에서 읽은 값으로 채우고 편집할 수 있다.
  */
 (function () {
   'use strict';
 
   const INNINGS = 14;
+
+  /* 볼카운트 스트립 기호 (docs/2023recordRaw_스코어북 기록방법.pdf) */
+  const COUNT_MARK = {
+    B:  { g: '＼', t: '볼' },
+    S:  { g: 'Ɔ',  t: '그대로 보낸 스트라이크' },
+    W:  { g: '⊖',  t: '헛친 스트라이크(파울팁 포함)' },
+    F:  { g: '△',  t: '파울 타구' },
+    BF: { g: '▲',  t: '번트 파울 타구' },
+    BM: { g: '●',  t: '번트 헛스윙' },
+    H:  { g: 'θ',  t: '타격완료' }
+  };
+  /* 다이아몬드 네 칸: a=홈~1루, b=1~2루, c=2~3루, d=3루~홈 */
+  const ZONES = [
+    { k: 'a', t: '홈~1루' }, { k: 'b', t: '1루~2루' },
+    { k: 'c', t: '2루~3루' }, { k: 'd', t: '3루~홈' }
+  ];
   const BAT_COLS = [
     { key: '타수', head: '타\n수', w: 'col-stat-w' },
     { key: '득점', head: '득\n점', w: 'col-stat-w' },
@@ -190,7 +207,45 @@
       hits: '', hr: '', sh: '', sf: '', bb: '', ibb: '', hbp: '', so: '', wp: '', bk: '', r: '', er: ''
     }));
     s.notes = s.notes || [];
+    s.diamond = Array.isArray(s.diamond) ? s.diamond : [];
     return s;
+  }
+
+  /** 판독한 다이아몬드 칸을 (타순, 열) 로 찾을 수 있게 묶는다. */
+  function diamondIndex(s) {
+    const m = new Map();
+    s.diamond.forEach(d => m.set(`${d.slot}-${d.col}`, d));
+    return m;
+  }
+
+  /** 다이아몬드 칸 하나를 그린다. d 가 없으면 빈 칸. */
+  function buildDiamond(d) {
+    const wrap = el('div', 'dia-wrap');
+
+    const bc = el('div', 'bc');
+    ((d && d.count) || []).forEach(code => {
+      const m = COUNT_MARK[code];
+      const n = el('span', 'bc-mark', m ? m.g : code);
+      n.title = m ? m.t : code;
+      bc.appendChild(n);
+    });
+    wrap.appendChild(bc);
+
+    const box = el('div', 'dia-box');
+    box.appendChild(el('div', 'diamond'));
+    if (d) {
+      const z = d.z || {};
+      ZONES.forEach(zone => {
+        if (!z[zone.k]) return;
+        const n = el('span', 'zmark z-' + zone.k, z[zone.k]);
+        n.title = zone.t;
+        box.appendChild(n);
+      });
+      if (d.center) box.appendChild(el('span', 'dia-center k-' + (d.kind || ''), d.center));
+      if (d.result) box.appendChild(el('span', 'dia-result', d.result));
+    }
+    wrap.appendChild(box);
+    return wrap;
   }
 
   /* --------------------------------------------------------------- 상단부 */
@@ -298,6 +353,7 @@
 
   /* ---------------------------------------------------------------- 본표 */
   function buildGrid(s) {
+    const dia = diamondIndex(s);
     const table = el('table', 'grid');
     const cg = el('colgroup');
     const col = (cls) => { const c = el('col', cls); cg.appendChild(c); };
@@ -367,9 +423,14 @@
             tr.appendChild(c);
           } else {
             for (let i = 0; i < INNINGS; i++) {
-              const c = td(null, 'diamond-cell' + (i === 0 ? ' bl' : '') + ' bt',
-                           { colspan: 2, rowspan: 3, title: '볼카운트/타석 영역 — 이번 범위 제외' });
-              c.appendChild(el('div', 'diamond'));
+              const d = dia.get(`${slot.order}-${i + 1}`);
+              const title = d
+                ? `${d.inning}회 ${d.pa}번째 타석 · ${slot.order}번` + (d.note ? `\n${d.note}` : '')
+                : '볼카운트/타석 영역 — 아직 판독하지 않음';
+              const c = td(null,
+                           'diamond-cell' + (i === 0 ? ' bl' : '') + ' bt' + (d ? ' has-read' : ''),
+                           { colspan: 2, rowspan: 3, title: title });
+              c.appendChild(buildDiamond(d));
               tr.appendChild(c);
             }
           }

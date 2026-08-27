@@ -125,13 +125,51 @@ table.grid td, table.grid th { height: var(--cell-h); }
 .col-stat    { width: 24px; }
 .col-stat-w  { width: 34px; }
 
-td.diamond-cell { background: #fbfcfe; }
+/* ---------- 볼카운트(타석 다이아몬드) 칸 ----------
+   기록지와 같은 구성: 왼쪽 좁은 칸 = 투구 하나하나(볼카운트란),
+   오른쪽 = 다이아몬드. 다이아몬드 네 귀퉁이는 루간 상황(a~d). */
+td.diamond-cell { background: #fbfcfe; padding: 0; vertical-align: top; }
+td.diamond-cell.has-read { background: #fffdf4; }
+
+.dia-wrap { display: flex; align-items: stretch; height: 100%; min-height: 60px; }
+
+.bc {
+  flex: 0 0 17px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 1px; padding-top: 2px;
+  border-right: 1px solid #dde6ef;
+  font-size: 9px; line-height: 1; color: var(--ink);
+}
+.bc-mark { display: block; }
+
+.dia-box { position: relative; flex: 1 1 auto; }
 .diamond {
-  width: 46px; height: 46px; margin: 4px auto;
+  position: absolute; left: 50%; top: 50%;
+  width: 30px; height: 30px; margin: -15px 0 0 -15px;
   border: 1px dashed #b9c9d8;
   transform: rotate(45deg);
 }
 td.diamond-cell:hover .diamond { border-color: #8fa8bd; }
+
+.zmark {
+  position: absolute; font-size: 9px; line-height: 1; color: var(--ink);
+  white-space: nowrap;
+}
+.z-c { left: 1px;  top: 1px; }
+.z-b { right: 1px; top: 1px; }
+.z-d { left: 1px;  bottom: 1px; }
+.z-a { right: 1px; bottom: 1px; }
+
+.dia-center {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -55%);
+  font-size: 11px; line-height: 1; font-weight: 600; color: var(--ink);
+}
+.dia-center.k-lob { color: var(--ink-red); font-style: italic; font-size: 13px; }
+
+.dia-result {
+  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+  font-size: 10px; line-height: 1.1; color: var(--ink);
+}
 
 .ord-num { color: var(--line); font-size: 11px; }
 .sheet td.subs-cell { background: #fcfdff; vertical-align: top; text-align: left; }
