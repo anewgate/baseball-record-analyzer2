@@ -716,10 +716,22 @@
     const src = window.SCORESHEETS || {};
     Object.keys(src).forEach(id => { originals[id] = normalize(src[id]); });
 
+    /* 저장본이 있으면 그것을 쓰되, 저장본에 없는 항목은 원본에서 채운다.
+       그래야 판독을 새로 해서 records.js 에 항목이 늘어났을 때(예: diamond)
+       예전에 저장해 둔 브라우저에서도 새 항목이 보인다. 편집한 값은 그대로 이긴다. */
     const stored = loadStored() || {};
+    const filled = [];
     Object.keys(originals).forEach(id => {
-      state[id] = stored[id] ? normalize(stored[id]) : deep(originals[id]);
+      if (!stored[id]) { state[id] = deep(originals[id]); return; }
+      const base = deep(originals[id]);
+      Object.keys(base).forEach(k => {
+        if (!(k in stored[id])) filled.push(`${id}.${k}`);
+      });
+      state[id] = normalize(Object.assign(base, stored[id]));
     });
+    if (filled.length) {
+      console.info('[기록지] 저장본에 없어 원본에서 채운 항목:', filled.join(', '));
+    }
 
     const sel = document.getElementById('sheetSelect');
     Object.keys(originals).forEach(id => {
