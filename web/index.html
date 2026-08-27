@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>야구기록지 · 스코어시트 편집기</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="toolbar">
+  <h1>야구기록지 편집기</h1>
+
+  <label class="tb-item">시트
+    <select id="sheetSelect"></select>
+  </label>
+
+  <span class="tb-sep"></span>
+
+  <button id="btnSave"   class="btn">저장</button>
+  <button id="btnExport" class="btn">JSON 내보내기</button>
+  <label class="btn file-btn">JSON 불러오기
+    <input type="file" id="fileImport" accept="application/json" hidden>
+  </label>
+  <button id="btnReset"  class="btn btn-warn">원본값 복원</button>
+
+  <span class="tb-sep"></span>
+
+  <button id="btnImage" class="btn">원본 이미지</button>
+  <button id="btnPrint" class="btn">인쇄</button>
+
+  <span class="tb-status" id="status"></span>
+</header>
+
+<div class="scope-note" id="scopeNote">
+  가운데 <strong>볼카운트(타석 다이아몬드) 영역은 이번 작업 범위에서 제외</strong>되어 빈 칸으로 표시됩니다.
+  그 외 모든 칸은 원본 기록지에서 읽어 채웠으며 직접 수정·입력할 수 있습니다.
+</div>
+
+<main>
+  <div class="sheet-scroll">
+    <div class="sheet" id="sheet"></div>
+  </div>
+
+  <section class="notes" id="notes"></section>
+</main>
+
+<div class="modal" id="imageModal" hidden>
+  <div class="modal-bar">
+    <span id="imageCaption"></span>
+    <button class="btn" id="btnImageClose">닫기</button>
+  </div>
+  <div class="modal-body"><img id="sourceImage" alt="원본 기록지"></div>
+</div>
+
+<script src="records.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
