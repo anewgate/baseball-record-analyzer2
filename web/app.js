@@ -219,6 +219,30 @@
     return m;
   }
 
+  /** 이닝별 색 범례. 열과 이닝이 어긋나므로 어느 칸이 몇 회인지 한눈에 보이게 한다. */
+  function buildInningLegend(s) {
+    if (!s.diamond.length) return null;
+    const by = new Map();
+    s.diamond.forEach(d => {
+      if (!by.has(d.inning)) by.set(d.inning, { pa: 0, cols: new Set() });
+      const e = by.get(d.inning);
+      e.pa += 1;
+      e.cols.add(d.col);
+    });
+    const wrap = el('div', 'inn-legend');
+    wrap.appendChild(el('span', 'lg-title', '판독한 이닝'));
+    [...by.keys()].sort((a, b) => a - b).forEach(n => {
+      const e = by.get(n);
+      const cols = [...e.cols].sort((a, b) => a - b).join('·');
+      const item = el('span', 'lg inn-' + n);
+      item.appendChild(el('i'));
+      item.appendChild(el('b', null, n + '회'));
+      item.appendChild(el('span', null, `${e.pa}타석 · ${cols}열`));
+      wrap.appendChild(item);
+    });
+    return wrap;
+  }
+
   /** 다이아몬드 칸 하나를 그린다. d 가 없으면 빈 칸. */
   function buildDiamond(d) {
     const wrap = el('div', 'dia-wrap');
@@ -428,8 +452,11 @@
               const title = d
                 ? `${d.inning}회 ${d.pa}번째 타석 · ${slot.order}번` + (d.note ? `\n${d.note}` : '')
                 : '볼카운트/타석 영역 — 아직 판독하지 않음';
+              const mark = d
+                ? ` has-read inn-${d.inning}` + (d.pa === 1 ? ' inn-start' : '')
+                : '';
               const c = td(null,
-                           'diamond-cell' + (i === 0 ? ' bl' : '') + ' bt' + (d ? ' has-read' : ''),
+                           'diamond-cell' + (i === 0 ? ' bl' : '') + ' bt' + mark,
                            { colspan: 2, rowspan: 3, title: title });
               c.appendChild(buildDiamond(d));
               tr.appendChild(c);
@@ -677,6 +704,8 @@
     const root = document.getElementById('sheet');
     root.innerHTML = '';
     root.appendChild(buildTop(s));
+    const legend = buildInningLegend(s);
+    if (legend) root.appendChild(legend);
     root.appendChild(buildGrid(s));
     root.appendChild(buildBottom(s));
 

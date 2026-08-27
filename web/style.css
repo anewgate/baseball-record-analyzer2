@@ -128,8 +128,44 @@ table.grid td, table.grid th { height: var(--cell-h); }
 /* ---------- 볼카운트(타석 다이아몬드) 칸 ----------
    기록지와 같은 구성: 왼쪽 좁은 칸 = 투구 하나하나(볼카운트란),
    오른쪽 = 다이아몬드. 다이아몬드 네 귀퉁이는 루간 상황(a~d). */
+/* 이닝별 색. 열과 이닝이 어긋나므로(한 이닝이 두 열에 걸치고, 열 중간에서 시작한다)
+   칸마다 몇 회인지 색으로 구분한다. 10회부터는 1~5회 색을 다시 쓴다. */
+.inn-1,  .inn-10 { --inn: #2e6fa8; --inn-bg: #e8f1fa; }
+.inn-2,  .inn-11 { --inn: #17766b; --inn-bg: #e3f4f0; }
+.inn-3,  .inn-12 { --inn: #a6711a; --inn-bg: #fbf1dd; }
+.inn-4,  .inn-13 { --inn: #684e9e; --inn-bg: #efeafa; }
+.inn-5,  .inn-14 { --inn: #47742c; --inn-bg: #ecf5e4; }
+.inn-6           { --inn: #a8443c; --inn-bg: #fbecea; }
+.inn-7           { --inn: #2b6f8f; --inn-bg: #e5f2f7; }
+.inn-8           { --inn: #8a5a2b; --inn-bg: #f8efe3; }
+.inn-9           { --inn: #6b6f2c; --inn-bg: #f3f4e1; }
+
 td.diamond-cell { background: #fbfcfe; padding: 0; vertical-align: top; }
-td.diamond-cell.has-read { background: #fffdf4; }
+td.diamond-cell.has-read {
+  background: var(--inn-bg);
+  box-shadow: inset 3px 0 0 var(--inn);
+}
+/* 그 이닝의 첫 타석은 ㄱ 자로 표시해 어디서 이닝이 시작하는지 보이게 한다 */
+td.diamond-cell.inn-start {
+  box-shadow: inset 3px 0 0 var(--inn), inset 0 3px 0 var(--inn);
+}
+
+/* 이닝 색 범례 */
+.inn-legend {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px;
+  margin: 0 0 8px; padding: 6px 8px;
+  border: 1px solid #dde6ef; border-radius: 4px; background: #fcfdff;
+  font-size: 11.5px; color: #3b4c60;
+}
+.inn-legend .lg-title { font-weight: 700; color: var(--label); }
+.inn-legend .lg { display: inline-flex; align-items: center; gap: 5px; }
+.inn-legend .lg i {
+  width: 13px; height: 12px; border-radius: 2px;
+  background: var(--inn-bg); border: 1px solid var(--inn);
+  border-left-width: 3px;
+}
+.inn-legend .lg b { color: var(--inn); font-weight: 700; }
+.inn-legend .lg span { color: #6b7c8f; }
 
 .dia-wrap { display: flex; align-items: stretch; height: 100%; min-height: 60px; }
 
@@ -216,4 +252,8 @@ tr.total-row td { height: 30px; }
   main { padding: 0; }
   .sheet { border: 0; box-shadow: none; padding: 0; }
   .sheet-scroll { overflow: visible; }
+  /* 이닝 색은 인쇄에서도 남긴다 */
+  td.diamond-cell, .inn-legend, .inn-legend .lg i {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
 }
